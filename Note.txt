@@ -16,7 +16,7 @@ git log      —— 查看提交记录
 
 git reflog   —— 查看命令记录
 
-git reset    —— 版本移动（--hard HEAD：前移；--hard commit id：后移）
+git reset    —— 版本移动（--hard HEAD：前移；--hard commit id：后移）；此命令另一个作用是将缓存区的修改回退到工作区；
 
 我他妈不要当小白鼠！！！
 

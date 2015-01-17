@@ -1,0 +1,5 @@
+git init   —— 创建版本库
+
+git add    —— 添加文件到暂存区
+
+git commit —— 提交文件到master

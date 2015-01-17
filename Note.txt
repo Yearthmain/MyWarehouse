@@ -17,3 +17,5 @@ git log    —— 查看提交记录
 git reflog —— 查看命令记录
 
 git reset  —— 版本移动（--hard HEAD：前移；--hard commit id：后移）
+
+我他妈不要当小白鼠！！！

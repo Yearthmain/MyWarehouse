@@ -3,3 +3,7 @@ git init   —— 创建版本库
 git add    —— 添加文件到暂存区
 
 git commit —— 提交文件到master
+
+git status —— 查看工作库当前状态
+
+也就是说...我是小白鼠？？？

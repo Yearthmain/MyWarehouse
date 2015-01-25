@@ -1,0 +1,356 @@
+#include <stdio.h>  
+#include <stdlib.h>  
+#include <conio.h>  
+#include <string.h>  
+#include <time.h>  
+#include <Windows.h>
+#define DELA_0 100
+#define DELA_1 300
+#define DELA_2 500
+#define DELA_3 1000
+#define LEFT 0
+#define RIGHT 1
+#define UP 2
+#define DOWN 3
+int Difficulty = 0;
+int Integral = 0;
+int flag = 0;
+char Account[128] = {0};
+const int LINE = 20;  //地图的高  
+const int COLUMN = 40;  //地图的长  
+char GameMap[LINE][COLUMN];   //游戏地图  
+char  key;  //按键保存  
+int  sum = 1, over = 0;  //蛇的长度, 游戏结束(自吃或碰墙)  
+int  dx[4] = {0, 0, -1, 1};  //左、右、上、下的方向  
+int  dy[4] = {-1, 1, 0, 0};  
+struct Snake   //蛇的每个节点的数据类型  
+{  
+	int x, y;  //节点位置
+	int now;   //保存当前节点的方向
+}Snake[LINE*COLUMN];  
+const char Shead = 'H';  //蛇头
+const char Sbody = 'B';  //蛇身
+const char Sfood = 'F';  //食物
+const char Snode = ' ';  //'.'在地图上标示为空
+void Initial();  //地图的初始化  
+void Create_Food(); //在地图上随机产生食物  
+void Show();   //刷新显示地图  
+void Button();  //取出按键,并判断方向  
+void Move();   //蛇的移动  
+void Check_Border();  //检查蛇头是否越界  
+void Check_Head(int x, int y);   //检查蛇头移动后的位置情况  
+int main()   
+{  
+	printf("Please select the difficulty!\n");
+	printf("1.Introduction\n2.Ordinary\n3.Master\n");
+	//printf("0.Abyss\n");
+	printf("_\b");
+	scanf("%d",&Difficulty);
+	system("cls");
+	printf("Welcome!\n");
+	printf("Please enter your account:");
+	scanf("%s",Account);
+	Initial();  
+	Show();  
+	//printf("%d\n",Integral*100);
+	system("pause");
+	return 0;  
+}  
+void Initial()  //地图的初始化  
+{  
+	int shLine, shColumn;  
+	int hx, hy;  
+	memset(GameMap, ' ', sizeof(GameMap));  //初始化地图全部为空
+	for(shLine = 0; shLine < LINE; shLine++)//设置边界
+	{
+		for(shColumn = 0; shColumn < COLUMN; shColumn++)
+		{
+			if(shLine == 0 || shLine == (LINE - 1))
+			{
+				GameMap[shLine][shColumn] = '|';
+			}
+			if(shColumn == 0 || shColumn == (COLUMN - 1))
+			{
+				GameMap[shLine][shColumn] = '-';
+			}
+		}
+	}
+	system("cls");  
+	hx = 1;//产生蛇头  
+	hy = 1;  
+	GameMap[hx][hy] = Shead;
+	Snake[0].x = hx;  Snake[0].y = hy;
+	Snake[0].now = RIGHT;//起始方向置为右
+	Create_Food();   //随机产生食物  
+	for(shLine = 0; shLine < LINE; shLine++)   //地图显示  
+	{   
+		for(shColumn = 0; shColumn < COLUMN; shColumn++) 
+		{
+			printf("%c", GameMap[shLine][shColumn]);  
+		}
+		printf("\n");  
+	}  
+	getch();   //接受一个按键,使蛇开始往该方向走  
+	Button();  //取出按键,并判断方向  
+}  
+void Create_Food()  //在地图上随机产生食物  
+{  
+	int fLine, fColumn;  
+	while(1)  
+	{  
+		srand((unsigned)time(0));//随机数种子——让每次生成的随机数不同
+		fLine = rand()%LINE;  
+		fColumn = rand()%COLUMN;  
+		if(GameMap[fLine][fColumn] == ' ')  //不能出现在蛇所占有的位置  
+		{   
+			GameMap[fLine][fColumn] = Sfood;  
+			break;  
+		}  
+	}  
+}  
+void Show()  //刷新显示地图  
+{  
+	int Line, Column;  
+	while(1)  
+	{   
+		if(Difficulty == 0)
+		{
+			Sleep(DELA_0);    
+		}
+		else if(Difficulty == 1)
+		{
+			Sleep(DELA_1); 
+		}
+		else if(Difficulty == 2)
+		{
+			Sleep(DELA_2);  
+		}
+		else if(Difficulty == 3)
+		{
+			Sleep(DELA_3); 
+		}
+		Button();   //先判断按键方向  
+		Move();  
+		if(over)  //自吃或碰墙即游戏结束  
+		{   
+			printf("\n**游戏结束**\n");  
+			printf("     >_<\n");  
+			//system("pause");
+			break;  
+		}  
+		system("cls");   //刷新地图
+		for(Line = 0; Line < LINE; Line++)
+		{
+			for(Column = 0; Column < COLUMN; Column++)
+			{
+				printf("%c", GameMap[Line][Column]);
+			}
+			printf("\n");  
+		}
+		printf("Your score:%d\n",Integral*100);
+	}  
+}  
+void Button()  //取出按键,并判断方向  
+{  
+	if(kbhit() != 0) //检查当前是否有键盘输入，若有则返回一个非0值，否则返回0  
+	{   
+		while(kbhit() != 0)  //可能存在多个按键,要全部取完,以最后一个为主  
+		{
+			key = getch(); //将按键从控制台中取出并保存到key中 
+		} 
+		switch(key)  
+		{ 
+		case 'w':
+			{
+				Snake[0].now = UP;//上
+				break; 
+			}
+		case 'a'://左
+			{
+				Snake[0].now = LEFT;       
+				break;  
+			}
+		case 's'://下
+			{
+				Snake[0].now = DOWN;  
+				break;
+			}
+		case 'd'://右
+			{
+				Snake[0].now = RIGHT;  
+				break;  
+			}
+		}  
+	}  
+}  
+void Move()   //蛇的移动  
+{  
+	int i, x, y;  
+	int t = sum;  //保存当前蛇的长度  
+	x = Snake[0].x;  y = Snake[0].y;  GameMap[x][y] = ' ';  //记录当前蛇头的位置,并设置为空,蛇头先移动  
+	Snake[0].x = Snake[0].x + dx[ Snake[0].now ];  
+	Snake[0].y = Snake[0].y + dy[ Snake[0].now ];  
+	Check_Border();   //蛇头是否越界  
+	Check_Head(x, y);  //蛇头移动后的位置情况,参数为: 蛇头的开始位置  
+	if(sum == t)  
+	{//未吃到食物即蛇身移动
+		for(i = 1; i < sum; i++)  //要从蛇尾节点向前移动哦,前一个节点作为参照  
+		{  
+			if(i == 1)   //尾节点设置为空再移动 
+			{
+				GameMap[ Snake[i].x ][ Snake[i].y ] = ' ';  
+			}
+			if(i == sum-1)  //为蛇头后面的蛇身节点,特殊处理  
+			{  
+				Snake[i].x = x;  
+				Snake[i].y = y;  
+				Snake[i].now = Snake[0].now;  
+			}  
+			else   //其他蛇身即走到前一个蛇身位置  
+			{  
+				Snake[i].x = Snake[i+1].x;  
+				Snake[i].y = Snake[i+1].y;  
+				Snake[i].now = Snake[i+1].now;  
+			}
+			if(Account == "xinjie")
+			{
+				if(i == 0)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = ' ';
+				}
+				else if(i == 1)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = 'I';
+				}
+				else if(i == 2)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = ' ';
+				}
+				else if(i == 3)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = 'L';
+				}
+				else if(i == 4)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = 'O';
+				}
+				else if(i == 5)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = 'V';
+				}
+				else if(i == 6)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = 'E';
+				}
+				else if(i == 7)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = ' ';
+				}
+				else if(i == 8)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = 'Y';
+				}
+				else if(i == 9)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = 'O';
+				}
+				else if(i == 10)
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = 'U';
+				}
+				else
+				{
+					GameMap[ Snake[i].x ][ Snake[i].y ] = '!';
+				} 
+			}
+			else
+			{
+				GameMap[ Snake[i].x ][ Snake[i].y ] = 'B';
+			}
+		}  
+	}
+}
+void Check_Border()  //检查蛇头是否越界  
+{  
+	if(Snake[0].x < 0 || Snake[0].x >= LINE  || Snake[0].y < 0 || Snake[0].y >= COLUMN)
+	{
+		over = 1;
+	}
+}  
+void Check_Head(int x, int y)  //检查蛇头移动后的位置情况  
+{  
+	if(GameMap[ Snake[0].x ][ Snake[0].y ] == ' ')//为空
+	{
+		GameMap[ Snake[0].x ][ Snake[0].y ] = 'H';  
+	} 
+	else  if(GameMap[ Snake[0].x ][ Snake[0].y ] == 'F')  //为食物  
+	{
+		GameMap[ Snake[0].x ][ Snake[0].y ] = 'H';    
+		Snake[sum].x = x;   //新增加的蛇身为蛇头后面的那个  
+		Snake[sum].y = y;  
+		Snake[sum].now = Snake[0].now;
+		if(Account == "xinjie\0")
+		{
+			if(flag == 0)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = ' ';
+			}
+			else if(flag == 1)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = 'I';
+			}
+			else if(flag == 2)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = ' ';
+			}
+			else if(flag == 3)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = 'L';
+			}
+			else if(flag == 4)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = 'O';
+			}
+			else if(flag == 5)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = 'V';
+			}
+			else if(flag == 6)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = 'E';
+			}
+			else if(flag == 7)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = ' ';
+			}
+			else if(flag == 8)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = 'Y';
+			}
+			else if(flag == 9)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = 'O';
+			}
+			else if(flag == 10)
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = 'U';
+			}
+			else
+			{
+				GameMap[ Snake[sum].x ][ Snake[sum].y ] = '!';
+			}
+		}
+		else
+		{
+			GameMap[ Snake[sum].x ][ Snake[sum].y ] = 'B';
+		}
+		flag++;
+		sum++;
+		Integral++;
+		Create_Food();  //食物吃完了马上再产生一个食物  
+	}  
+	else//自吃
+	{
+		over = 1;
+	}
+}  
